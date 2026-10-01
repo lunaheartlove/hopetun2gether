@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOVE</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Mali', cursive;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #FFB3D1, #BFE7FF, #E2C6FF);
+            color: #5A4B6E;
+            padding: 24px 0;
+        }
+
+        .card {
+            width: 90%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 28px;
+            padding: 28px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .title {
+            font-size: 22px;
+            color: #5A4B6E;
+            margin-bottom: 25px;
+        }
+
+        .book-wrap {
+            width: 100%;
+        }
+
+        .notebook {
+            position: relative;
+            background: #fffef9;
+            border-radius: 4px 14px 14px 4px;
+            box-shadow:
+                -6px 0 0 #e8e0f0,
+                -10px 0 0 #d9d0e8,
+                0 8px 20px rgba(130, 100, 160, 0.12);
+            overflow: hidden;
+            min-height: 420px;
+        }
+
+        .spirals {
+            position: absolute;
+            left: -1px;
+            top: 0;
+            bottom: 0;
+            width: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .spiral {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #c8b8e0, #a090c0);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .pages {
+            margin-left: 22px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            padding: 24px 22px 60px 28px;
+            background: repeating-linear-gradient(to bottom,
+                    transparent,
+                    transparent 31px,
+                    #e4f2ff 31px,
+                    #e4f2ff 32px);
+            line-height: 2;
+            font-size: 15px;
+            min-height: 420px;
+            position: relative;
+            animation-duration: 0.35s;
+            animation-fill-mode: both;
+            animation-timing-function: ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page::before {
+            content: "";
+            position: absolute;
+            left: 16px;
+            top: 0;
+            bottom: 0;
+            width: 1.5px;
+            background: linear-gradient(to bottom, #ffccd8, #FFB3D1, #ffccd8);
+        }
+
+        @keyframes flipInRight {
+            from {
+                opacity: 0;
+                transform: translateX(48px) rotateY(-12deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0) rotateY(0);
+            }
+        }
+
+        @keyframes flipInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-48px) rotateY(12deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0) rotateY(0);
+            }
+        }
+
+        .page.flip-in-right {
+            animation-name: flipInRight;
+        }
+
+        .page.flip-in-left {
+            animation-name: flipInLeft;
+        }
+
+        .to {
+            font-weight: 600;
+            font-size: 15px;
+            color: #7A5C8A;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .page-text {
+            white-space: pre-line;
+            color: #5A4B6E;
+        }
+
+        .from-wrap {
+            margin-top: 14px;
+            text-align: right;
+        }
+
+        .from {
+            font-weight: 600;
+            font-size: 15px;
+            color: #7A5C8A;
+            display: inline-block;
+        }
+
+        .page-num {
+            position: absolute;
+            bottom: 14px;
+            right: 18px;
+            font-size: 12px;
+            color: #B39CD0;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.85);
+            border: none;
+            color: #8B7BAF;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(139, 123, 175, 0.15);
+            font-family: 'Mali', cursive;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: #8B7BAF;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .page-indicator {
+            font-size: 13px;
+            color: #7A5C8A;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .btn {
+            background-color: #8B7BAF;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(139, 123, 175, 0.35);
+            transition: all 0.25s ease;
+            font-family: 'Mali', cursive;
+        }
+
+        .btn:hover {
+            background-color: #7A6AA0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 123, 175, 0.45);
+        }
+
+        @media (max-width: 360px) {
+            body {
+                padding: 12px 0;
+            }
+
+            .card {
+                max-height: 92vh;
+                overflow-y: auto;
+                padding: 22px 14px;
+            }
+
+            .title {
+                font-size: 18px;
+                margin-bottom: 14px;
+            }
+
+            .notebook {
+                min-height: 360px;
+            }
+
+            .page {
+                font-size: 13px;
+                padding: 16px 14px 50px 22px;
+                min-height: 360px;
+            }
+
+            .nav-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .page-indicator {
+                font-size: 12px;
+            }
+        }
+
+        @media (min-width: 361px) and (max-width: 480px) {
+            body {
+                padding: 16px 0;
+            }
+
+            .card {
+                max-height: 92vh;
+                overflow-y: auto;
+                padding: 24px 18px;
+            }
+
+            .notebook {
+                min-height: 380px;
+            }
+
+            .page {
+                font-size: 14px;
+                min-height: 380px;
+            }
+        }
+
+        @media (min-width: 481px) and (max-width: 599px) {
+            .card {
+                max-height: 94vh;
+                overflow-y: auto;
+            }
+
+            .notebook {
+                min-height: 400px;
+            }
+
+            .page {
+                min-height: 400px;
+            }
+        }
+
+        @media (min-width: 600px) and (max-width: 1024px) {
+            .card {
+                max-height: 95vh;
+                overflow-y: auto;
+            }
+
+            .notebook {
+                min-height: 420px;
+            }
+
+            .page {
+                min-height: 420px;
+            }
+        }
+
+        @media (max-width: 430px) {
+            .card {
+                width: 92%;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 420px) {
+            body {
+                padding: 10px 0;
+                align-items: center;
+            }
+
+            .card {
+                max-height: 90vh;
+                overflow-y: auto;
+                padding: 14px;
+            }
+
+            .title {
+                font-size: 16px;
+            }
+
+            .notebook {
+                min-height: 320px;
+            }
+
+            .page {
+                font-size: 12px;
+                min-height: 320px;
+                padding: 14px 12px 40px 20px;
+            }
+
+            .nav-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 14px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        @supports (padding: env(safe-area-inset-left)) {
+            body {
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <div class="title">จดหมายถึงคนน่ารัก</div>
+
+        <div class="book-wrap">
+            <div class="notebook">
+                <div class="spirals" id="spirals"></div>
+                <div class="pages" id="pages"></div>
+            </div>
+
+            <div class="nav">
+                <button class="nav-btn" id="prevBtn" onclick="changePage(-1)" disabled>&#8592;</button>
+                <span class="page-indicator" id="pageIndicator"></span>
+                <button class="nav-btn" id="nextBtn" onclick="changePage(1)">&#8594;</button>
+            </div>
+
+            <div style="text-align:center; margin-top:14px;">
+                <button class="btn" onclick="location.href='menu.html'">กลับหน้าเมนู</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const toText = "ถึงพี่โฮปน้องตุ๋น";
+        const fromText = "จากบันนี่";
+
+        const letter = `มีความสุขในการเล่นเกมส์ทั้งคู่นะจั๊ฟฉองเดือนแย้วที่รู้จักกันมา !!ampere!!💐🐰🐻 to hopetun ขอบคุณที่สร้างรอยยิ้มและเสียงหัวเราะให้กันมาตลอดสองเดือน ขอให้เล่นเกมอย่างมีความสุขนะคะ -bibi- ขอบคุณที่สร้างรอยยิ้มให้กันมาตลอดขอให้เล่นเกมอย่างมีความสุขนะ -MEEkaJAi- 🎀🐰🐻 พวกหนูคือคนฮีลใจในวันที่มี้มี้เหนื่อย อย่าลืมดูแลตัวเอง กินของอร่อย พักผ่อนให้เพียงพอนะคะ ..Moonnie.. สร้างรอยยิ้มให้กับมี้ๆทุกคนไปนานๆนะคะ🐰🐻 อยู่เป็นรอยยิ้มให้กับมิ๊ๆไปนานๆน๊าาา รักกกก -Bubble-
+พวกหนูเป็นความสุขให้มิ๊มิ๊แล้ว อย่าลืมเป็นความสุขให้กับตัวเองด้วยนะ เล่นเกมให้สนุกนะคะ 🐰🐻..Jibhappylife.. สองเดือนนี้มิ๊ๆมีความสุขม้ากๆคับ ยิ้มกันเย้อๆนะลูก 🤎🤎 -papapat- ขอบคุณที่สร้างเสียวหัวเราะ คอยเป็นรอยยิ้ม ขอให้พวกหนูเล่นเกมให้สนุกมีความสุขในทุกๆวันนะงับ รักนะเจ้าเด็กของมี๊ทั้งสอง ˚⋆𐙚 ÄoM 🫶🏻🐰🐻 ขอบคุณที่เข้ามาเติมรอยยิ้มและความสุขให้กันในทุกวันนะขอให้โลกใจดีกับพวกหนูเสมอ และมีแต่เรื่องดี ๆ เข้ามาในทุกวันนะ :-𝙴𝚒𝙴𝚒𝙳𝚒𝚆𝙰- 🐰 🐻ขอบคุณที่ทำให้วันธรรมดาๆของมี๊มีแต่รอยยิ้มนะ ดูแลตัวเองด้วยอย่าหักโหมมาก มี๊เป็นห่วงตะเหม๋ออ -chamilk- 🤍🐰🐻
+รักหนูทั้ง2คนนะงับ ขอบคุณที่มาสร้างรอยยิ้มและฮิลใจให้นะงับ Por_Pa ขอบคุณที่สร้าง รอยยิ้ม สร้างเสียงหัวเราะ เล่นเกมให้สนุกนะงับ^^ ขอบคุณที่สร้างรอยยิ้มและเสียงหัวเราะขอให้เล่นเกมอย่างมีความสุขนะคะ 🐰🐻-woon- ขอบคุณนะคับที่ทำให้สร้างรอยยิ้มสร้างเสียงหัวเราะในทุกๆวันขอให้เล่นเกมอย่างมีความสุขนะคับ ≽^• ˕ • ྀི≼ -Yuni- 2 เดือนที่ผ่านมา ขอบคุณ ที่พวกหนู สร้างความสุขให้กับทุกคน พ่ออาจจะพูดไม่เก่ง แต่พร้อม ปกป้องเสมอ ขอบคุณรอยยิ้มเสียงหัวเราะที่มอบให้ตลอด2เดือนที่ผ่าน ขอให้2คนอยู่สร้างความสุขไปนานๆนะ มีความสุขกับการเล่นเกมนะค้าบ -khnom-
+ขอบคุณที่สร้างรอยยิ้มนะทั้งสองคนเลย มีความสุขกันมากๆ มีแต่คนรักเยอะๆเล่นเกมให้มีความสุขนะ-kaomsin- ขอบคุณทั้งสองที่สร้างรอยยิ้ม สร้างเสียงหัวเราะ ให้กับทุกคนนะค้าบ-Arraya-🐰🐻 ขอบคุณที่สร้างร้อยยิ้มเสียงหัวเราะ ตลอด2เดือนที่ผ่านมา ให้หนูทั้ง2เล่นเกมให้สนุกแบบนี้ตลอดไปนะ ขอบคุณโฮปตุ๋นที่เข้ามาเป็นความสุขเล็กๆ ของมิ้ในทุกวันนะ ถึงบางวันกราฟของพวกหนูจะสวิงขึ้นลงบ้าง มิ้ก็ยังชอบความเป็นหนูสองคนเสมอ ในวันที่มิ้เจอเรื่องเหนื่อยๆ หรือเรื่องไม่ดีมา แค่ได้กลับมาเห็นรอยยิ้ม ได้ยินเสียงหัวเราะของพวกหนู หัวใจของมิ้ก็เหมือนได้พัก และวันนั้นก็เบาลงอีกนิดขอให้โฮปตุ๋นได้เจอแต่วันที่ใจดีกับพวกหนู 
+ขอให้มีคนรอบข้างที่รักและเข้าใจ คอยโอบกอดในวันที่เหนื่อย ขอให้ทุกความตั้งใจค่อย ๆ เติบโตเป็นความสำเร็จและไม่ว่าจะเจออะไร ขอให้หนูสองคนยังมีรอยยิ้มให้ตัวเองได้เสมอ ขอบคุณทั้งสองคนที่คอยสร้างโมเมนต์และเสียงหัวเราะให้กับทุกคน เเละจะคอยซัพพอร์ตทั้งคู่ไปตลอดนะคะ🐰🐻-namwan.jpg- ขอบคุณโฮปตุ๋นที่เข้ามาเป็น jigsaw🧩 ในส่วนที่ขาดหายไปของกันและกัน ขอบคุณที่เข้ามาเป็นรอยยิ้มและเสียงหัวเราะให้คนดูในทุก ๆ วัน ขอให้เล่นเกมให้มีความสุขนะคะ  𝑳𝑼𝑽 𝑯𝑶𝑷𝑬𝑻𝑼𝑵 🧸🤲🏻💕 - urmysunshineforever -
+ขอให้หนูทั้งสองคนมีความสุขเยอะ ๆ แบบล้นๆ และมีแต่เรื่องดี ๆ เข้ามานะ 🤎 ข้างหลังพวกหนู 2 คนจะมีมี๊ ๆ พ่อ ๆ คอยซัพพอร์ตอยู่ตะเหม๋อน๊า🤏🏻 💗 ขอให้หนูทั้งสองมีความสุขกับการเล่นเกมในทุกๆวันนะคะ ขอบคุณที่เข้ามาเป็นรอยยิ้มเป็นเสียงหัวเราะให้มี๊ๆนะ จะคอยซัพพอร์ตอยู่ตรงนี้เสมอ รักรัก 🫶🩷 ขอบคุณหนูทั้งสองคนที่สร้างรอยยิ้มให้มิ้ๆพี่แชททุกคนตลอดระยะเวลา2เดือนนี้ ขอให้หนูทั้งสองมีความสุขกับการเล่นเกมส์ มิ้จะคอยซัพพอร์ตอยู่ตรงนี้เสมอ🐰🐻🩷🫶🏻  !!saiton(มิ้ไซ)🍯!! ขอบคุณเด็กๆทั้ง2 ที่สร้างรอยยิ้มและเสียงหัวเราะหรือบางวันอาจมีอาการขาดหุ้นบ้าง ก็ยังรักและเป็นกำลังใจให้เหมือนเดิม 
+ถึงแม้อาจจะไม่ได้เข้าดูสต.สดแต่ตามดูย้อนหลังอยู่นะงับ มีความสุขมากๆ สนุกกับการเล่นเกมส์งับ   Oil~🍯 ขอบคุณโฮปต้มตุ๋น เด็กๆที่น่ารักของมี๊ ขอบคุณที่เข้ามาสร้างรอยยิ้มให้มี๊ให้เป็นวันสดใสของมี๊ทุกวัน มี๊ขอให้หนูทั้งสองเล่นเกมให้สนุก อย่ากดดันตัวเองนะ มี๊จะคอยซัพพอร์ตหนูทั้งสองเสมอน๊าา🫶🏻🐰🐻 -nanfahhh🐰💖- ขอให้ลูกมีความสุข ขอบคุณที่สร้างรอยยิ้มเสียงหัวเราะให้กับทุกคน มี๊ๆจะซัพพอร์ตลูกทั้งสองคนนะ อย่าลืมหาความสุขให้ตัวเอาด้วยล่ะ รักพวกหนูทั้งสองนะ🐻🐇
+ถึง โฮปตุ๋น สดใสแบบนี้กันไปนานๆนะคะ เล่นเกมส์ให้สนุก Always support nakaaaa 💖🐰🐻 - mamii noon-`;
+
+        /* แบ่งเนื้อหาเป็นหน้าๆ ทีละ 1 บรรทัด */
+        const LINES_PER_PAGE = 1;
+        const lines = letter.split("\n");
+        const chunks = [];
+        for (let i = 0; i < lines.length; i += LINES_PER_PAGE) {
+            chunks.push(lines.slice(i, i + LINES_PER_PAGE).join("\n"));
+        }
+        const totalPages = chunks.length;
+        let current = 0;
+
+        const spiralsEl = document.getElementById("spirals");
+        for (let i = 0; i < 8; i++) {
+            const s = document.createElement("div");
+            s.className = "spiral";
+            spiralsEl.appendChild(s);
+        }
+
+        const pagesEl = document.getElementById("pages");
+        chunks.forEach((chunk, idx) => {
+            const div = document.createElement("div");
+            div.className = "page" + (idx === 0 ? " active" : "");
+            div.id = "page-" + idx;
+
+            let html = "";
+            if (idx === 0) html += `<div class="to">${toText}</div>\n`;
+            html += `<div class="page-text">${chunk}</div>`;
+            if (idx === totalPages - 1) {
+                html += `<div class="from-wrap">
+                    <div class="from">${fromText}</div>
+                </div>`;
+            }
+            html += `<div class="page-num">${idx + 1} / ${totalPages}</div>`;
+
+            div.innerHTML = html;
+            pagesEl.appendChild(div);
+        });
+
+        function updateUI() {
+            document.getElementById("prevBtn").disabled = current === 0;
+            document.getElementById("nextBtn").disabled = current === totalPages - 1;
+            document.getElementById("pageIndicator").innerText = `${current + 1} / ${totalPages}`;
+        }
+
+        function changePage(dir) {
+            const oldPage = document.getElementById("page-" + current);
+            current += dir;
+            const newPage = document.getElementById("page-" + current);
+
+            oldPage.classList.remove("active");
+            newPage.classList.remove("flip-in-right", "flip-in-left");
+            void newPage.offsetWidth;
+            newPage.classList.add("active", dir > 0 ? "flip-in-right" : "flip-in-left");
+
+            updateUI();
+        }
+
+        updateUI();
+    </script>
+
+</body>
+
+</html>

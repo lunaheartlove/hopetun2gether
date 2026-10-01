@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOVE</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Mali', cursive;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg,
+                    #FFB3D1,
+                    #BFE7FF,
+                    #E2C6FF);
+        }
+
+        .card {
+            width: 90%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 24px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px 25px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .shake {
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-6px);
+            }
+
+            50% {
+                transform: translateX(6px);
+            }
+
+            75% {
+                transform: translateX(-6px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .card img {
+            width: 170px;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            font-size: 20px;
+            color: #5A4B6E;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #5A4B6E;
+            margin-bottom: 5px;
+        }
+
+        .error {
+            font-size: 14px;
+            color: #ff5c8a;
+            height: 18px;
+            margin-bottom: 15px;
+        }
+
+        .pin-box {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+        }
+
+        .pin {
+            width: 48px;
+            height: 55px;
+            border-radius: 12px;
+            background: #eee;
+            font-size: 20px;
+            color: #5A4B6E;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .key {
+            background: #fff;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 20px;
+            color: #5A4B6E;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .key:active {
+            transform: scale(0.95);
+        }
+
+        .btn {
+            background-color: #8B7BAF;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(139, 123, 175, 0.35);
+            transition: all 0.25s ease;
+        }
+
+        .btn:hover {
+            background-color: #7A6AA0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 123, 175, 0.45);
+        }
+
+        .btn-delete {
+            background: #d88bb0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card" id="card">
+        <img src="img/image2.png" alt="heart">
+
+        <div class="title">กรอกรหัสผ่าน</div>
+        <div class="subtitle">คำใบ้ : วันแรกที่เจอกัน</div> <!-- นน -->
+        <div class="error" id="errorMsg"></div>
+
+        <div class="pin-box">
+            <div class="pin"></div>
+            <div class="pin"></div>
+            <div class="pin"></div>
+            <div class="pin"></div>
+            <div class="pin"></div>
+            <div class="pin"></div>
+        </div>
+
+        <div class="keypad">
+            <div class="key" onclick="addNum('1')">1</div>
+            <div class="key" onclick="addNum('2')">2</div>
+            <div class="key" onclick="addNum('3')">3</div>
+            <div class="key" onclick="addNum('4')">4</div>
+            <div class="key" onclick="addNum('5')">5</div>
+            <div class="key" onclick="addNum('6')">6</div>
+            <div class="key" onclick="addNum('7')">7</div>
+            <div class="key" onclick="addNum('8')">8</div>
+            <div class="key" onclick="addNum('9')">9</div>
+
+            <button class="btn btn-delete" onclick="delNum()">ลบ</button>
+            <div class="key" onclick="addNum('0')">0</div>
+            <button class="btn" onclick="checkPass()">ยืนยัน</button>
+        </div>
+    </div>
+
+    <script>
+        let input = "";
+        const correct = "040826"; // นน
+
+        function updateUI() {
+            const pins = document.querySelectorAll(".pin");
+            pins.forEach((p, i) => {
+                p.textContent = input[i] ? "•" : "";
+            });
+        }
+
+        function addNum(num) {
+            if (input.length < 6) {
+                input += num;
+                updateUI();
+            }
+        }
+
+        function delNum() {
+            input = input.slice(0, -1);
+            updateUI();
+        }
+
+        function shakeCard() {
+            const card = document.getElementById("card");
+            card.classList.add("shake");
+
+            setTimeout(() => {
+                card.classList.remove("shake");
+            }, 300);
+        }
+
+        function showError(msg, color) {
+            const error = document.getElementById("errorMsg");
+            error.textContent = msg;
+            error.style.color = color;
+
+            shakeCard();
+
+            setTimeout(() => {
+                error.textContent = "";
+            }, 2000);
+        }
+
+        function checkPass() {
+            if (input.length < 6) {
+                showError("กรอกรหัสผ่านไม่ครบ", "#FF8FB1");
+                return;
+            }
+
+            if (input === correct) {
+                window.location.href = "menu.html";
+            } else {
+                showError("รหัสผ่านไม่ถูกต้อง", "#FF8FB1");
+                input = "";
+                updateUI();
+            }
+        }
+    </script>
+
+</body>
+
+</html>

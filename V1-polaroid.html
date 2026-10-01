@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOVE</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Mali', cursive;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg,
+                    #FFB3D1,
+                    #BFE7FF,
+                    #E2C6FF);
+            color: #5A4B6E;
+        }
+
+        .card {
+            width: 90%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 28px;
+            padding: 26px 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.65;
+            margin-bottom: 20px;
+        }
+
+        /* ===== STAGE ===== */
+        .stage {
+            position: relative;
+            width: 100%;
+            height: 420px;
+            border-radius: 20px;
+            margin-bottom: 18px;
+        }
+
+        /* ดาวเล็กๆ ประดับฉาก */
+        .sparkle {
+            position: absolute;
+            font-size: 14px;
+            opacity: 0.5;
+            color: #8B7BAF;
+            animation: twinkle 2.5s infinite ease-in-out;
+        }
+
+        .sparkle:nth-child(1) {
+            top: 30px;
+            left: 40px;
+            animation-delay: 0s;
+        }
+
+        .sparkle:nth-child(2) {
+            top: 60px;
+            right: 50px;
+            animation-delay: 0.8s;
+        }
+
+        .sparkle:nth-child(3) {
+            top: 90px;
+            left: 80px;
+            animation-delay: 1.4s;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(0.9);
+            }
+
+            50% {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+
+        /* ===== POLAROID (รูปที่ออกมา) ===== */
+        .polaroid-area {
+            position: absolute;
+            bottom: 235px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        .polaroid-wrapper {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .polaroid-wrapper.show {
+            animation: slideUp 1s ease forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .polaroid {
+            width: 150px;
+            background: #fff;
+            padding: 10px 10px 28px;
+            border-radius: 3px;
+            box-shadow: 0 10px 22px rgba(139, 123, 175, 0.25);
+        }
+
+        .polaroid-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            filter: blur(12px);
+            transition: filter 3s ease;
+        }
+
+        .polaroid.develop .polaroid-img {
+            filter: blur(0);
+        }
+
+        .polaroid.shake {
+            animation: shake 1.2s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: rotate(0);
+            }
+
+            25% {
+                transform: rotate(-4deg);
+            }
+
+            50% {
+                transform: rotate(4deg);
+            }
+
+            75% {
+                transform: rotate(-4deg);
+            }
+        }
+
+        /* ===== กล้องโพลารอยด์ ===== */
+        .camera {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 240px;
+            height: 220px;
+            z-index: 2;
+        }
+
+        /* ตัวกล้อง — โทนม่วงพาสเทลเข้ากับ theme */
+        .camera-body {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, #F5EFFF 0%, #E2C6FF 100%);
+            border-radius: 16px;
+            box-shadow:
+                0 12px 28px rgba(139, 123, 175, 0.35),
+                inset 0 -8px 0 rgba(139, 123, 175, 0.15),
+                inset 0 2px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        /* แถบสีรุ้งพาสเทล */
+        .rainbow-stripe {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 70px;
+            height: 10px;
+            border-radius: 2px;
+            background: linear-gradient(90deg,
+                    #FFB3D1 0%, #FFB3D1 25%,
+                    #FFD6B0 25%, #FFD6B0 50%,
+                    #C8F0B0 50%, #C8F0B0 75%,
+                    #BFE7FF 75%, #BFE7FF 100%);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        }
+
+        /* โลโก้ */
+        .brand {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #5A4B6E;
+        }
+
+        /* ช่องมองภาพเล็ก */
+        .viewfinder-sm {
+            position: absolute;
+            top: 36px;
+            left: 16px;
+            width: 22px;
+            height: 15px;
+            background: #5A4B6E;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+
+        /* แฟลช */
+        .flash-unit {
+            position: absolute;
+            top: 36px;
+            right: 16px;
+            width: 34px;
+            height: 22px;
+            background: linear-gradient(180deg, #FFFFFF, #E8E8F5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9);
+        }
+
+        .flash-unit::before {
+            content: "";
+            position: absolute;
+            inset: 2px;
+            background: repeating-linear-gradient(90deg,
+                    rgba(139, 123, 175, 0.3) 0 2px,
+                    transparent 2px 5px);
+        }
+
+        /* แผ่นเลนส์กลาง — โทนม่วงเข้มนิดๆ */
+        .lens-plate {
+            position: absolute;
+            top: 68px;
+            left: 12px;
+            right: 12px;
+            height: 108px;
+            background: linear-gradient(180deg, #6B5A89 0%, #4A3D66 100%);
+            border-radius: 10px;
+            box-shadow:
+                inset 0 2px 4px rgba(0, 0, 0, 0.3),
+                inset 0 -2px 3px rgba(255, 255, 255, 0.1);
+        }
+
+        /* เลนส์ใหญ่ */
+        .lens-outer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 82px;
+            height: 82px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #B8A0D4 0%, #8B7BAF 100%);
+            box-shadow:
+                0 0 0 4px #4A3D66,
+                0 3px 8px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lens-inner {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%,
+                    #C9B8E0 0%,
+                    #5A4B6E 45%,
+                    #2A2040 100%);
+            box-shadow:
+                inset 0 0 8px rgba(0, 0, 0, 0.9),
+                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .lens-inner::before {
+            content: "";
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                    rgba(255, 255, 255, 0.7),
+                    rgba(255, 255, 255, 0));
+        }
+
+        /* เซ็นเซอร์ข้างเลนส์ */
+        .sensor {
+            position: absolute;
+            top: 50%;
+            right: 18px;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #FFB3D1, #E85A8B);
+            box-shadow: 0 0 6px rgba(255, 130, 160, 0.6);
+        }
+
+        .sensor-sm {
+            position: absolute;
+            top: 50%;
+            left: 18px;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2A2040;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        /* ปุ่ม shutter — สีชมพูเข้ากับ theme */
+        .shutter {
+            position: absolute;
+            bottom: 16px;
+            right: 22px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #FFC8D9, #FF8FAB);
+            box-shadow:
+                0 3px 8px rgba(255, 143, 171, 0.5),
+                inset 0 2px 2px rgba(255, 255, 255, 0.6),
+                inset 0 -2px 2px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .shutter:hover {
+            transform: scale(1.1);
+        }
+
+        .shutter:active {
+            transform: scale(0.92);
+        }
+
+        /* หัวใจเล็กๆ ข้างปุ่ม shutter */
+        .heart-decor {
+            position: absolute;
+            bottom: 22px;
+            left: 22px;
+            font-size: 14px;
+            color: #FFB3D1;
+        }
+
+        /* ช่องพ่นรูป */
+        .photo-slot {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            height: 10px;
+            background: #5A4B6E;
+            border-radius: 3px 3px 0 0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ===== BUTTON ===== */
+        .btn {
+            background-color: #8B7BAF;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 999px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(139, 123, 175, 0.35);
+            transition: all 0.25s ease;
+            margin: 6px;
+            text-decoration: none;
+            display: inline-block;
+            font-family: 'Mali', cursive;
+        }
+
+        .btn:hover {
+            background-color: #7A6AA0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 123, 175, 0.45);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* ===== FLASH เต็มจอ ===== */
+        #flash {
+            position: fixed;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        #flash.active {
+            animation: flashAnim 0.4s ease;
+        }
+
+        @keyframes flashAnim {
+            0% {
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .flash-unit.flashing {
+            animation: flashGlow 0.4s ease;
+        }
+
+        @keyframes flashGlow {
+
+            0%,
+            100% {
+                background: linear-gradient(180deg, #FFFFFF, #E8E8F5);
+                box-shadow: none;
+            }
+
+            30% {
+                background: #FFFBE0;
+                box-shadow: 0 0 24px 10px rgba(255, 251, 170, 0.9);
+            }
+        }
+
+        @media (max-width: 360px) {
+            .stage {
+                height: 360px;
+            }
+
+            .camera {
+                width: 200px;
+                height: 185px;
+            }
+
+            .polaroid-area {
+                bottom: 200px;
+            }
+
+            .polaroid {
+                width: 130px;
+            }
+
+            .lens-plate {
+                height: 92px;
+                top: 60px;
+            }
+
+            .lens-outer {
+                width: 70px;
+                height: 70px;
+            }
+
+            .lens-inner {
+                width: 50px;
+                height: 50px;
+            }
+
+            .rainbow-stripe {
+                width: 58px;
+                height: 8px;
+            }
+
+            .brand {
+                font-size: 10px;
+            }
+
+            .flash-unit {
+                width: 30px;
+                height: 18px;
+            }
+
+            .shutter {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 420px) {
+            body {
+                align-items: flex-start;
+                padding: 10px 0;
+            }
+
+            .stage {
+                height: 280px;
+            }
+
+            .camera {
+                width: 180px;
+                height: 165px;
+            }
+
+            .polaroid-area {
+                bottom: 180px;
+            }
+
+            .polaroid {
+                width: 110px;
+            }
+
+            .lens-plate {
+                height: 80px;
+                top: 54px;
+            }
+
+            .lens-outer {
+                width: 60px;
+                height: 60px;
+            }
+
+            .lens-inner {
+                width: 42px;
+                height: 42px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        @supports (padding: env(safe-area-inset-left)) {
+            body {
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
+
+        .btn-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 52px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+
+        <div class="title">ถ่ายรูปโพลารอยด์</div>
+        <div class="subtitle">เก็บช่วงเวลาของเราไว้</div>
+
+        <div class="stage">
+
+            <div class="sparkle">✦</div>
+            <div class="sparkle">✧</div>
+            <div class="sparkle">✦</div>
+
+            <div class="polaroid-area">
+                <div class="polaroid-wrapper" id="polaroidWrapper">
+                    <div class="polaroid" id="polaroid">
+                        <img src="img/aa7.png" class="polaroid-img">
+                    </div>
+                </div>
+            </div>
+
+            <div class="camera">
+                <div class="camera-body">
+                    <div class="photo-slot"></div>
+                    <div class="rainbow-stripe"></div>
+                    <div class="brand">POLAROID</div>
+                    <div class="viewfinder-sm"></div>
+                    <div class="flash-unit" id="flashUnit"></div>
+                    <div class="lens-plate">
+                        <div class="sensor-sm"></div>
+                        <div class="lens-outer">
+                            <div class="lens-inner"></div>
+                        </div>
+                        <div class="sensor"></div>
+                    </div>
+                    <div class="heart-decor">♡</div>
+                    <div class="shutter" onclick="takePhoto()"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="btn-area">
+            <button class="btn" id="btnTake" onclick="takePhoto()">ถ่ายรูป</button>
+            <button class="btn hidden" id="btnShake" onclick="shakePhoto()">เขย่ารูป</button>
+            <a href="menu.html" class="btn hidden" id="btnBack">กลับหน้าเมนู</a>
+        </div>
+
+    </div>
+
+    <div id="flash"></div>
+    <audio id="shutterSound" src="audio/camera-shutter-314056.mp3"></audio>
+
+    <script>
+        let taken = false;
+
+        function takePhoto() {
+            if (taken) return;
+            taken = true;
+
+            const wrapper = document.getElementById("polaroidWrapper");
+            const btnTake = document.getElementById("btnTake");
+            const btnShake = document.getElementById("btnShake");
+            const flash = document.getElementById("flash");
+            const flashUnit = document.getElementById("flashUnit");
+            const shutter = document.getElementById("shutterSound");
+
+            shutter.currentTime = 0;
+            shutter.play().catch(() => { });
+
+            flash.classList.remove("active");
+            flashUnit.classList.remove("flashing");
+            void flash.offsetWidth;
+            flash.classList.add("active");
+            flashUnit.classList.add("flashing");
+
+            setTimeout(() => wrapper.classList.add("show"), 300);
+
+            btnTake.classList.add("hidden");
+            setTimeout(() => btnShake.classList.remove("hidden"), 1200);
+        }
+
+        function shakePhoto() {
+            const polaroid = document.getElementById("polaroid");
+            const btnShake = document.getElementById("btnShake");
+            const btnBack = document.getElementById("btnBack");
+
+            polaroid.classList.remove("shake");
+            void polaroid.offsetWidth;
+            polaroid.classList.add("shake");
+            polaroid.classList.add("develop");
+
+            btnShake.classList.add("hidden");
+            btnBack.classList.remove("hidden");
+        }
+    </script>
+
+</body>
+
+</html>
